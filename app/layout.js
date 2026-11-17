@@ -2,7 +2,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'Miss Nederland – Fotoselectie',
-  description: 'Geef je gekozen headshot door.',
+  description: 'Geef je gekozen foto door.',
   robots: { index: false, follow: false },
 };
 

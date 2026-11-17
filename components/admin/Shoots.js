@@ -31,7 +31,7 @@ export default function Shoots({ data, reload, toast, onOpen }) {
 
   function messageText(s) {
     const deadline = s.deadline_at ? `\nGraag uiterlijk doorgeven vóór ${formatDateTime(s.deadline_at)}.` : '';
-    return `Hoi! Via deze link kun je je gekozen headshot doorgeven (${s.name}, ${s.province}):\n${shareLink(s.public_link_token)}${deadline}`;
+    return `Hoi! Via deze link kun je je gekozen ${s.photo_label || 'foto'} doorgeven (${s.name}, ${s.province}):\n${shareLink(s.public_link_token)}${deadline}`;
   }
 
   return (
@@ -70,7 +70,7 @@ export default function Shoots({ data, reload, toast, onOpen }) {
                       <button className="btn btn-sm btn-primary" onClick={async () => { if (confirmShare(s) && await copyText(shareLink(s.public_link_token))) toast('Link gekopieerd'); }}>Link kopiëren</button>
                       <a className="btn btn-sm btn-outline" href={`https://wa.me/?text=${encodeURIComponent(messageText(s))}`} target="_blank" rel="noopener noreferrer"
                         onClick={(e) => { if (!confirmShare(s)) e.preventDefault(); }}>WhatsApp</a>
-                      <a className="btn btn-sm btn-outline" href={`mailto:?subject=${encodeURIComponent('Geef je headshot-keuze door')}&body=${encodeURIComponent(messageText(s))}`}
+                      <a className="btn btn-sm btn-outline" href={`mailto:?subject=${encodeURIComponent(`Geef je gekozen ${s.photo_label || 'foto'} door`)}&body=${encodeURIComponent(messageText(s))}`}
                         onClick={(e) => { if (!confirmShare(s)) e.preventDefault(); }}>E-mail</a>
                       <a className="btn btn-sm btn-ghost" href={`/s/${s.public_link_token}`} target="_blank" rel="noopener noreferrer">Bekijk formulier ↗</a>
                     </div>
@@ -102,6 +102,7 @@ function ShootModal({ shoot, onClose, onSaved }) {
   const [f, setF] = useState({
     province: shoot.province || '',
     name: shoot.name || '',
+    photo_label: shoot.photo_label || '',
     shootstack_gallery_url: shoot.shootstack_gallery_url || '',
     expected_participants: shoot.expected_participants ?? '',
     expected_teens: shoot.expected_teens ?? '',
@@ -122,7 +123,7 @@ function ShootModal({ shoot, onClose, onSaved }) {
     if (urlInvalid) { setErr('De Shootstack-link moet beginnen met https://'); return; }
     const deadline = f.deadline_local ? amsterdamLocalToDate(f.deadline_local) : null;
     const body = {
-      province: f.province, name: f.name, shootstack_gallery_url: f.shootstack_gallery_url.trim(),
+      province: f.province, name: f.name, photo_label: f.photo_label, shootstack_gallery_url: f.shootstack_gallery_url.trim(),
       expected_participants: f.expected_participants, expected_teens: f.expected_teens, expected_misses: f.expected_misses,
       deadline_at: deadline ? deadline.toISOString() : null,
       allow_submissions_after_deadline: f.allow_submissions_after_deadline,
@@ -163,6 +164,11 @@ function ShootModal({ shoot, onClose, onSaved }) {
             <label className="label" htmlFor="sh-name">Naam van de shoot</label>
             <input id="sh-name" className="input" value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="Bijv. Officiële headshots" required />
           </div>
+        </div>
+        <div className="field">
+          <label className="label" htmlFor="sh-label">Wat kiezen de deelnemers?</label>
+          <input id="sh-label" className="input" value={f.photo_label} onChange={(e) => set('photo_label', e.target.value)} placeholder="foto" maxLength={40} />
+          <div className="hint">Bovenaan het formulier staat dan: <b>Kies je {f.photo_label.trim() || 'foto'}</b>. Bijvoorbeeld headshot, portretfoto of foto.</div>
         </div>
         <div className="field">
           <label className="label" htmlFor="sh-url">Shootstack-galerijlink</label>

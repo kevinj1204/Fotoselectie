@@ -127,7 +127,7 @@ export default function ParticipantForm({ token, shoot, price }) {
   const header = (
     <header className="pub-header" ref={topRef}>
       <div className="eyebrow">{BRAND.name}</div>
-      <h1>Kies je headshot</h1>
+      <h1>Kies je {shoot.photo_label}</h1>
       <div className="shoot">{shoot.name} · {shoot.province}</div>
     </header>
   );
@@ -156,7 +156,7 @@ export default function ParticipantForm({ token, shoot, price }) {
           <div className="card" style={{ textAlign: 'center' }}>
             <h2>De inzendtermijn is gesloten</h2>
             <p className="muted">
-              Het is niet meer mogelijk om via dit formulier je headshot-keuze door te geven.
+              Het is niet meer mogelijk om via dit formulier je keuze door te geven.
               Neem contact op met de organisatie als je nog een keuze wilt doorgeven.
             </p>
           </div>
@@ -173,7 +173,7 @@ export default function ParticipantForm({ token, shoot, price }) {
         <main className="pub-wrap">
           <div className="card success">
             <div className="check" aria-hidden="true">✓</div>
-            <h2>Bedankt! Je headshot-keuze is succesvol ontvangen.</h2>
+            <h2>Bedankt! Je keuze is succesvol ontvangen.</h2>
             {result.changeRequest && (
               <p className="alert alert-warn" style={{ textAlign: 'left' }}>
                 Er was al eerder een keuze voor je doorgegeven. Je nieuwe keuze is ontvangen en wordt door de organisatie gecontroleerd.
@@ -356,7 +356,7 @@ export default function ParticipantForm({ token, shoot, price }) {
         </form>
 
         <p className="privacy">
-          Je gegevens worden alleen gebruikt voor de organisatie van de headshot-keuze van {BRAND.name} en zijn niet openbaar zichtbaar.
+          Je gegevens worden alleen gebruikt voor de organisatie van de fotoselectie van {BRAND.name} en zijn niet openbaar zichtbaar.
           Wil je iets laten corrigeren of verwijderen? Neem contact op met de organisatie.
         </p>
       </main>
