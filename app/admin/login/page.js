@@ -41,6 +41,7 @@ export default function LoginPage() {
         </div>
         {error && <div className="alert alert-error">{error}</div>}
         <button className="btn btn-primary btn-block" style={{ marginTop: 18 }} disabled={busy}>{busy ? 'Bezig…' : 'Inloggen'}</button>
+        <p className="small muted" style={{ textAlign: 'center', marginTop: 14 }}><a href="/admin/wachtwoord">Wachtwoord instellen of wijzigen</a></p>
       </form>
     </div>
   );

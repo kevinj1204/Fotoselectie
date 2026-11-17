@@ -44,19 +44,15 @@ app/globals.css            Kleuren en typografie (variabelen bovenaan)
 
 ## Beheerder-login instellen
 
-1. Kies een sterk wachtwoord (minimaal 10 tekens).
-2. Maak de hash aan op je computer (in de projectmap, na `npm install`):
-   ```
-   npm run hash-password -- "JouwSterkeWachtwoord"
-   ```
-   Je krijgt twee regels: `ADMIN_PASSWORD_HASH=b64:...` en `SESSION_SECRET=...`.
-3. Zet in Vercel onder *Settings → Environment Variables*:
+1. Ga naar `https://<jouw-adres>/admin/wachtwoord`, kies een sterk wachtwoord (minimaal 10 tekens) en klik *Maak versleutelde waarde*. Dit gebeurt volledig in je eigen browser.
+   (Alternatief op de computer: `npm run hash-password -- "JouwWachtwoord"`.)
+2. Zet in Vercel onder *Settings → Environment Variables*:
    | Naam | Waarde |
    |---|---|
    | `ADMIN_EMAIL` | het e-mailadres waarmee je inlogt |
-   | `ADMIN_PASSWORD_HASH` | de `b64:...`-waarde uit stap 2 |
-   | `SESSION_SECRET` | de waarde uit stap 2 |
-4. Redeploy. Wachtwoord wijzigen = stap 2–4 opnieuw; alle bestaande sessies blijven geldig tot je ook `SESSION_SECRET` vervangt (vervang die om iedereen direct uit te loggen).
+   | `ADMIN_PASSWORD_HASH` | de `b64:...`-waarde uit stap 1 |
+   | `SESSION_SECRET` | optioneel; zonder wordt automatisch een veilige sleutel afgeleid |
+3. Redeploy. Wachtwoord wijzigen = stap 1–3 opnieuw; iedereen wordt dan automatisch uitgelogd.
 
 Het wachtwoord zelf wordt nergens opgeslagen.
 

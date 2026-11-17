@@ -3,7 +3,7 @@ import { verifySessionToken, SESSION_COOKIE } from './lib/auth';
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
-  const isLogin = pathname === '/admin/login' || pathname === '/api/admin/login';
+  const isLogin = pathname === '/admin/login' || pathname === '/admin/wachtwoord' || pathname === '/api/admin/login';
 
   // CSRF-bescherming: wijzigende beheerverzoeken moeten van dezelfde site komen.
   if (pathname.startsWith('/api/admin') && !['GET', 'HEAD'].includes(req.method)) {
