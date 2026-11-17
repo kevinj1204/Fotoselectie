@@ -163,7 +163,7 @@ function Table({ rows, onOpen, showProvince }) {
               <td>{s.category}</td>
               {showProvince && <td>{s.province}</td>}
               <td className="small">{s.shoot_name}</td>
-              <td className="code">{s.photo_code}</td>
+              <td className="code">{s.photo_code || <span className="badge dark" style={{ fontWeight: 600 }}>alleen betaald</span>}</td>
               <td className="code small">{s.extra_photo_codes.length ? s.extra_photo_codes.join(', ') : <span className="muted">–</span>}</td>
               <td>{s.extra_photo_count ? formatEuro(s.extra_photo_total) : <span className="muted">–</span>}</td>
               <td className="small">{formatShort(s.submitted_at)}</td>
@@ -215,7 +215,7 @@ function SubmissionModal({ id, shoots, onClose, onChanged }) {
   }
 
   async function del() {
-    if (!window.confirm(`Inzending van ${s.first_name} ${s.last_name} (${s.photo_code}) definitief verwijderen?`)) return;
+    if (!window.confirm(`Inzending van ${s.first_name} ${s.last_name} (${s.photo_code || s.extra_photo_codes.join(', ')}) definitief verwijderen?`)) return;
     try { await api(`/api/admin/submissions/${id}`, { method: 'DELETE' }); onChanged('Inzending verwijderd'); } catch (e) { setErr(e.message); }
   }
 
@@ -243,7 +243,7 @@ function SubmissionModal({ id, shoots, onClose, onChanged }) {
                 {s.original ? (
                   <div className="small" style={{ marginTop: 6 }}>
                     Eerdere inzending: {s.original.first_name} {s.original.last_name}, {s.original.category},
-                    foto <span className="code">{s.original.photo_code}</span>
+                    foto <span className="code">{s.original.photo_code || '–'}</span>
                     {s.original.extra_photo_codes.length > 0 && <> + {s.original.extra_photo_codes.join(', ')}</>}, ontvangen {formatShort(s.original.submitted_at)}
                   </div>
                 ) : <div className="small" style={{ marginTop: 6 }}>De eerdere inzending bestaat niet meer.</div>}
@@ -260,8 +260,8 @@ function SubmissionModal({ id, shoots, onClose, onChanged }) {
                 <dt>Categorie</dt><dd>{s.category}</dd>
                 <dt>Provincie/regio</dt><dd>{s.province}</dd>
                 <dt>Shoot</dt><dd>{s.shoot_name}</dd>
-                <dt>Hoofdkeuze</dt><dd className="code">{s.photo_code}</dd>
-                <dt>Extra foto&apos;s</dt><dd className="code">{s.extra_photo_codes.length ? s.extra_photo_codes.join(', ') : '–'}</dd>
+                <dt>Hoofdkeuze</dt><dd className="code">{s.photo_code || 'Geen (alleen betaalde foto\'s)'}</dd>
+                <dt>{s.photo_code ? "Extra foto's" : "Betaalde foto's"}</dt><dd className="code">{s.extra_photo_codes.length ? s.extra_photo_codes.join(', ') : '–'}</dd>
                 <dt>Aantal extra</dt><dd>{s.extra_photo_count} × {formatEuro(s.extra_photo_price_each)} = {formatEuro(s.extra_photo_total)}</dd>
                 <dt>Ontvangen</dt><dd>{formatDateTime(s.submitted_at)}</dd>
                 {s.updated_at && <><dt>Laatst gewijzigd</dt><dd>{formatDateTime(s.updated_at)}</dd></>}
@@ -306,12 +306,15 @@ function SubmissionModal({ id, shoots, onClose, onChanged }) {
                 <input id="e-ln" className={`input${fieldErr.last_name ? ' has-error' : ''}`} value={f.last_name} onChange={(e) => set('last_name', e.target.value)} />
               </div>
             </div>
+            {!shoots.find((sh) => sh.id === f.shoot_id)?.paid_only && (
+              <div className="field">
+                <span className="label">Hoofdkeuze</span>
+                <PhotoCodeInput id="e-photo" value={f.photo} onChange={(v) => set('photo', v)} error={fieldErr.photo_code} />
+              </div>
+            )}
             <div className="field">
-              <span className="label">Hoofdkeuze</span>
-              <PhotoCodeInput id="e-photo" value={f.photo} onChange={(v) => set('photo', v)} error={fieldErr.photo_code} />
-            </div>
-            <div className="field">
-              <span className="label">Extra foto&apos;s</span>
+              <span className="label">{shoots.find((sh) => sh.id === f.shoot_id)?.paid_only ? "Betaalde foto's" : "Extra foto's"}</span>
+              {fieldErr.extra_general && <div className="error-text">{fieldErr.extra_general}</div>}
               {f.extras.map((d, i) => (
                 <div className="extra-row" key={i}>
                   <PhotoCodeInput id={`e-extra-${i}`} value={d} showPreview={false} error={fieldErr.extra?.[i]}

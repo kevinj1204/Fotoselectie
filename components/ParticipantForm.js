@@ -13,7 +13,8 @@ function newKey() {
 
 export default function ParticipantForm({ token, shoot, price }) {
   const storageKey = `hs-form-${token}`;
-  const [form, setForm] = useState(EMPTY);
+  const paid = !!shoot.paid_only; // alleen betaalde foto's, geen gratis hoofdkeuze
+  const [form, setForm] = useState(paid ? { ...EMPTY, extras: [''] } : EMPTY);
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState('form'); // form | review | done
   const [sending, setSending] = useState(false);
@@ -29,9 +30,12 @@ export default function ParticipantForm({ token, shoot, price }) {
   useEffect(() => {
     try {
       const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
-      if (saved && typeof saved === 'object') setForm({ ...EMPTY, ...saved, extras: Array.isArray(saved.extras) ? saved.extras : [] });
+      if (saved && typeof saved === 'object') {
+        const extras = Array.isArray(saved.extras) ? saved.extras : [];
+        setForm({ ...EMPTY, ...saved, extras: paid && !extras.length ? [''] : extras });
+      }
     } catch {}
-  }, [storageKey]);
+  }, [storageKey, paid]);
   useEffect(() => {
     if (step === 'done') return;
     try { sessionStorage.setItem(storageKey, JSON.stringify(form)); } catch {}
@@ -45,9 +49,9 @@ export default function ParticipantForm({ token, shoot, price }) {
     last_name: form.last_name,
     category: form.category,
     province: shoot.province,
-    photo_code: form.photo,
+    photo_code: paid ? '' : form.photo,
     extra_photo_codes: form.extras,
-  }), [form, shoot.province]);
+  }), [form, shoot.province, paid]);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -62,12 +66,34 @@ export default function ParticipantForm({ token, shoot, price }) {
   function addExtra() {
     if (form.extras.length >= MAX_EXTRA_PHOTOS) return;
     setForm((f) => ({ ...f, extras: [...f.extras, ''] }));
+    if (errors.extra_general) setErrors((e) => { const n = { ...e }; delete n.extra_general; return n; });
     setTimeout(() => document.getElementById(`extra-${form.extras.length}`)?.focus(), 30);
   }
   function removeExtra(i) {
     setForm((f) => ({ ...f, extras: f.extras.filter((_, j) => j !== i) }));
+    if (errors.extra_general) setErrors((e) => { const n = { ...e }; delete n.extra_general; return n; });
     setErrors((e) => { const n = { ...e }; delete n.extra; return n; });
   }
+
+  const fotoWoord = (n) => `foto${n === 1 ? '' : "'s"}`;
+  const costBox = (note) => (
+    <div className="cost-box" aria-live="polite">
+      {paid ? (
+        <>
+          {extraCount} {fotoWoord(extraCount)} × {formatEuro(price)}
+          <div className="total">{formatEuro(extraTotal)} totaal</div>
+          {extraCount > 0 && <div className="small muted">{note}</div>}
+        </>
+      ) : (
+        <>
+          1 hoofdkeuze (inbegrepen)
+          {extraCount > 0 && <> · {extraCount} extra {fotoWoord(extraCount)} × {formatEuro(price)}</>}
+          <div className="total">{extraCount ? `${formatEuro(extraTotal)} extra` : 'Geen extra kosten'}</div>
+          {extraCount > 0 && <div className="small muted">{note}</div>}
+        </>
+      )}
+    </div>
+  );
 
   function scrollTop() {
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -76,7 +102,7 @@ export default function ParticipantForm({ token, shoot, price }) {
   function toReview(e) {
     e.preventDefault();
     setServerError('');
-    const { errors: errs } = validateSubmission(payload);
+    const { errors: errs } = validateSubmission(payload, { paidOnly: paid });
     setErrors(errs);
     if (hasErrors(errs)) {
       setTimeout(() => document.querySelector('[aria-invalid="true"], .has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 20);
@@ -188,14 +214,14 @@ export default function ParticipantForm({ token, shoot, price }) {
               <dt>Categorie</dt><dd>{s.category}</dd>
               <dt>Provincie/regio</dt><dd>{s.province}</dd>
               <dt>Shoot</dt><dd>{shoot.name}</dd>
-              <dt>Hoofdkeuze</dt><dd className="code">{s.photo_code}</dd>
-              <dt>Extra foto's</dt><dd>{s.extra_photo_count ? <span className="code">{s.extra_photo_codes.join(', ')}</span> : 'Geen'}</dd>
-              {s.extra_photo_count > 0 && (<><dt>Extra bedrag</dt><dd>{formatEuro(s.extra_photo_total)}</dd></>)}
+              {s.photo_code && <><dt>Hoofdkeuze</dt><dd className="code">{s.photo_code}</dd></>}
+              <dt>{paid ? "Gekozen foto's" : "Extra foto's"}</dt><dd>{s.extra_photo_count ? <span className="code">{s.extra_photo_codes.join(', ')}</span> : 'Geen'}</dd>
+              {s.extra_photo_count > 0 && (<><dt>{paid ? 'Bedrag' : 'Extra bedrag'}</dt><dd>{formatEuro(s.extra_photo_total)}</dd></>)}
               <dt>Ontvangen op</dt><dd>{formatDateTime(s.submitted_at)}</dd>
             </dl>
             {s.extra_photo_count > 0 && (
               <p className="small muted" style={{ marginTop: 12 }}>
-                Het bedrag voor de extra foto's wordt nu niet afgerekend. De organisatie laat je weten hoe je dit kunt voldoen.
+                Het bedrag voor de {paid ? '' : 'extra '}foto's wordt nu niet afgerekend. De organisatie laat je weten hoe je dit kunt voldoen.
               </p>
             )}
           </div>
@@ -218,16 +244,11 @@ export default function ParticipantForm({ token, shoot, price }) {
               <dt>Categorie</dt><dd>{payload.category}</dd>
               <dt>Provincie/regio</dt><dd>{shoot.province}</dd>
               <dt>Shoot</dt><dd>{shoot.name}</dd>
-              <dt>Hoofdkeuze</dt><dd className="code">{PHOTO_PREFIX}{form.photo}</dd>
-              <dt>Extra foto's</dt>
+              {!paid && <><dt>Hoofdkeuze</dt><dd className="code">{PHOTO_PREFIX}{form.photo}</dd></>}
+              <dt>{paid ? "Gekozen foto's" : "Extra foto's"}</dt>
               <dd>{extraCount ? <span className="code">{form.extras.map((d) => PHOTO_PREFIX + d).join(', ')}</span> : 'Geen'}</dd>
             </dl>
-            <div className="cost-box">
-              1 hoofdkeuze (inbegrepen)
-              {extraCount > 0 && <> · {extraCount} extra foto{extraCount === 1 ? '' : "'s"} × {formatEuro(price)}</>}
-              <div className="total">{extraCount ? `${formatEuro(extraTotal)} extra` : 'Geen extra kosten'}</div>
-              {extraCount > 0 && <div className="small muted">Je betaalt nu niets. De organisatie informeert je over de betaling van de extra foto's.</div>}
-            </div>
+            {costBox(`Je betaalt nu niets. De organisatie informeert je over de betaling van de ${paid ? '' : 'extra '}foto's.`)}
 
             {duplicate && (
               <div className="alert alert-warn" role="alert">
@@ -318,34 +339,43 @@ export default function ParticipantForm({ token, shoot, price }) {
             </div>
           </div>
 
-          <div className="field">
-            <label className="label" htmlFor="photo">Gekozen fotonummer (hoofdkeuze)<span className="req">*</span></label>
-            <PhotoCodeInput id="photo" value={form.photo} onChange={(v) => set('photo', v)} error={errors.photo_code} />
-          </div>
+          {!paid && (
+            <div className="field">
+              <label className="label" htmlFor="photo">Gekozen fotonummer (hoofdkeuze)<span className="req">*</span></label>
+              <PhotoCodeInput id="photo" value={form.photo} onChange={(v) => set('photo', v)} error={errors.photo_code} />
+            </div>
+          )}
 
           <div className="field">
-            <span className="label">Extra foto&apos;s <span className="muted small" style={{ fontWeight: 400 }}>(optioneel)</span></span>
-            <div className="hint" style={{ marginTop: 0 }}>Wil je naast je hoofdkeuze nog meer foto&apos;s? Elke extra foto kost {formatEuro(price)}.</div>
+            {paid ? (
+              <>
+                <span className="label">Gekozen fotonummer(s)<span className="req">*</span></span>
+                <div className="alert alert-warn small" style={{ marginTop: 0, marginBottom: 4 }}>
+                  Bij deze shoot zijn alle foto&apos;s betaald: <strong>{formatEuro(price)} per foto</strong>. Kies er minimaal één.
+                </div>
+                <div className="hint" style={{ marginTop: 0 }}>Typ alleen de cijfers, bijvoorbeeld 024 → TLP024.</div>
+              </>
+            ) : (
+              <>
+                <span className="label">Extra foto&apos;s <span className="muted small" style={{ fontWeight: 400 }}>(optioneel)</span></span>
+                <div className="hint" style={{ marginTop: 0 }}>Wil je naast je hoofdkeuze nog meer foto&apos;s? Elke extra foto kost {formatEuro(price)}.</div>
+              </>
+            )}
             {form.extras.map((d, i) => (
               <div key={i}>
                 <div className="extra-row">
-                  <PhotoCodeInput id={`extra-${i}`} value={d} onChange={(v) => setExtra(i, v)} label={`Extra foto ${i + 1} (alleen cijfers)`}
+                  <PhotoCodeInput id={`extra-${i}`} value={d} onChange={(v) => setExtra(i, v)} label={`${paid ? 'Foto' : 'Extra foto'} ${i + 1} (alleen cijfers)`}
                     error={errors.extra?.[i]} showPreview={false} />
-                  <button type="button" className="icon-btn" aria-label={`Extra foto ${i + 1} verwijderen`} onClick={() => removeExtra(i)}>✕</button>
+                  <button type="button" className="icon-btn" aria-label={`${paid ? 'Foto' : 'Extra foto'} ${i + 1} verwijderen`} onClick={() => removeExtra(i)}>✕</button>
                 </div>
               </div>
             ))}
             {errors.extra_general && <div className="error-text">{errors.extra_general}</div>}
             <button type="button" className="btn btn-outline btn-block" style={{ marginTop: 10 }} onClick={addExtra}
               disabled={form.extras.length >= MAX_EXTRA_PHOTOS}>
-              + Extra foto toevoegen (+ {formatEuroShort(price)})
+              + {paid ? (extraCount ? 'Nog een foto' : 'Foto toevoegen') : 'Extra foto toevoegen'} (+ {formatEuroShort(price)})
             </button>
-            <div className="cost-box" aria-live="polite">
-              1 hoofdkeuze (inbegrepen)
-              {extraCount > 0 && <> · {extraCount} extra foto{extraCount === 1 ? '' : "'s"} × {formatEuro(price)}</>}
-              <div className="total">{extraCount ? `${formatEuro(extraTotal)} extra` : 'Geen extra kosten'}</div>
-              {extraCount > 0 && <div className="small muted">Dit bedrag geldt alleen voor de extra foto&apos;s en wordt nu niet afgerekend.</div>}
-            </div>
+            {costBox(paid ? 'Dit bedrag wordt nu niet afgerekend.' : "Dit bedrag geldt alleen voor de extra foto's en wordt nu niet afgerekend.")}
           </div>
 
           {serverError && <div className="alert alert-error" role="alert">{serverError}</div>}

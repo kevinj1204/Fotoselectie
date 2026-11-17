@@ -36,6 +36,7 @@ export function ShootProgress({ s, compact = false }) {
         ) : <span className="badge warn">Geen deadline</span>}
         {s.deadline_passed && <span className="badge">{s.allow_submissions_after_deadline ? 'Inzenden nog toegestaan' : 'Inzenden gesloten'}</span>}
         {!compact && !s.gallery_ok && <span className="badge warn">Galerijlink ontbreekt</span>}
+        {s.paid_only && <span className="badge dark">Alleen betaalde foto&apos;s</span>}
         {s.to_review > 0 && <span className="badge warn">{s.to_review} te beoordelen</span>}
         {s.archived_at && <span className="badge dark">Gearchiveerd</span>}
       </div>

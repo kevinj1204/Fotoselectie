@@ -109,6 +109,7 @@ function ShootModal({ shoot, onClose, onSaved }) {
     expected_misses: shoot.expected_misses ?? '',
     deadline_local: dateToAmsterdamLocal(shoot.deadline_at),
     allow_submissions_after_deadline: !!shoot.allow_submissions_after_deadline,
+    paid_only: !!shoot.paid_only,
   });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -127,6 +128,7 @@ function ShootModal({ shoot, onClose, onSaved }) {
       expected_participants: f.expected_participants, expected_teens: f.expected_teens, expected_misses: f.expected_misses,
       deadline_at: deadline ? deadline.toISOString() : null,
       allow_submissions_after_deadline: f.allow_submissions_after_deadline,
+      paid_only: f.paid_only,
     };
     setBusy(true);
     try {
@@ -196,6 +198,10 @@ function ShootModal({ shoot, onClose, onSaved }) {
           <label className="label" htmlFor="sh-dl">Deadline (Nederlandse tijd)</label>
           <input id="sh-dl" className="input" type="datetime-local" value={f.deadline_local} onChange={(e) => set('deadline_local', e.target.value)} />
         </div>
+        <label className="check-row">
+          <input type="checkbox" checked={f.paid_only} onChange={(e) => set('paid_only', e.target.checked)} />
+          <span>Alleen betaalde foto&apos;s <span className="muted small">– geen gratis hoofdkeuze; iedere gekozen foto kost het ingestelde tarief</span></span>
+        </label>
         <label className="check-row">
           <input type="checkbox" checked={f.allow_submissions_after_deadline} onChange={(e) => set('allow_submissions_after_deadline', e.target.checked)} />
           Inzenden na de deadline toestaan

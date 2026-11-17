@@ -13,8 +13,8 @@ export default function Overview({ data, onOpen, onGoShoots }) {
         <div className="stat"><div className="k">Totaal inzendingen</div><div className="v">{totals.total}</div></div>
         <div className="stat"><div className="k">Teens</div><div className="v">{totals.teens}</div></div>
         <div className="stat"><div className="k">Missen</div><div className="v">{totals.misses}</div></div>
-        <div className="stat"><div className="k">Extra foto&apos;s</div><div className="v">{totals.extra_count}</div></div>
-        <div className="stat"><div className="k">Totaal extra foto&apos;s</div><div className="v">{formatEuro(totals.extra_total)}</div></div>
+        <div className="stat"><div className="k">Betaalde foto&apos;s</div><div className="v">{totals.extra_count}</div></div>
+        <div className="stat"><div className="k">Totaal betaalde foto&apos;s</div><div className="v">{formatEuro(totals.extra_total)}</div></div>
         <div className="stat"><div className="k">Te beoordelen</div><div className="v" style={{ color: totals.to_review ? 'var(--warn)' : undefined }}>{totals.to_review}</div></div>
       </div>
 
