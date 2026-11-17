@@ -101,7 +101,7 @@ function toCsv(columns, rows) {
 
 async function toXlsx(sheetName, columns, rows, textKeys, moneyKeys) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Miss Nederland headshot-keuze';
+  wb.creator = 'Miss Nederland fotoselectie';
   const ws = wb.addWorksheet(sheetName, { views: [{ state: 'frozen', ySplit: 1 }] });
   ws.columns = columns;
   textKeys.forEach((k) => { ws.getColumn(k).numFmt = '@'; });
@@ -133,7 +133,7 @@ export const GET = handler(async (req) => {
     moneyKeys = ['price_each', 'extra_total'];
   }
 
-  const filename = `headshots-${type === 'progress' ? 'voortgang' : 'inzendingen'}-${stamp}.${format}`;
+  const filename = `fotoselectie-${type === 'progress' ? 'voortgang' : 'inzendingen'}-${stamp}.${format}`;
   const body = format === 'xlsx'
     ? Buffer.from(await toXlsx(sheet, columns, rows, textKeys, moneyKeys))
     : toCsv(columns, rows);

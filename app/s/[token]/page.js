@@ -6,7 +6,7 @@ import ParticipantForm from '@/components/ParticipantForm';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
-  return { title: `${BRAND.name} – Geef je headshot-keuze door` };
+  return { title: `${BRAND.name} – Fotoselectie` };
 }
 
 export default async function ShootPage({ params }) {

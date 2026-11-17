@@ -53,7 +53,7 @@ export default function Dashboard() {
       <div className="adm-top">
         <div>
           <div className="eyebrow">{BRAND.name}</div>
-          <h1>Headshot-keuze · Beheer</h1>
+          <h1>Fotoselectie · Beheer</h1>
         </div>
         <button className="btn btn-sm btn-outline" onClick={logout}>Uitloggen</button>
       </div>
